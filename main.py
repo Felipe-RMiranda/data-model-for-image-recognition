@@ -1,10 +1,10 @@
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing import image_dataset_from_directory
+import ModelExported
 
-# Carregar o conjunto de dados de imagens
 dataset = image_dataset_from_directory(
-    '/home/anonymous/Imagens/modelo-dados/waterpollution',
+    'modelo-dados-waterpollution',
     image_size=(224, 224),
     batch_size=32,
     label_mode='categorical'
@@ -12,18 +12,20 @@ dataset = image_dataset_from_directory(
 
 # Definir um modelo básico (MobileNetV2)
 base_model = tf.keras.applications.MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
-base_model.trainable = False
+base_model.trainable = True
 
-model = models.Sequential([
-    base_model,
-    layers.GlobalAveragePooling2D(),
-    layers.Dense(128, activation='relu'),
-    layers.Dense(2, activation='softmax')  # 5 classes de lixo
+model = models.Sequential([  # Cria um modelo sequencial, onde as camadas são empilhadas uma após a outra.
+    base_model, #Adiciona o modelo pré-treinado (neste caso, MobileNetV2) como a primeira camada. Ele extrai características das imagens.
+    layers.GlobalAveragePooling2D(), # Esta camada faz uma média global das características extraídas
+    layers.Dense(128, activation='relu'), #Adiciona uma camada densa (totalmente conectada) com 128 neurônios e a função de ativação ReLU
+    layers.Dense(1, activation='softmax')  #camada com 2 neurônios (para 2 classes de lixo) e a função de ativação softmax. Ela gera probabilidades para cada classe
 ])
 
-# Compilar o modelo
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) # Compilar o modelo
 
-# Treinar o modelo
-model.fit(dataset, epochs=10)
+model.fit(dataset, epochs=2) # Treinar o modelo do dataset fornecido com a quantidade de epocas que modelo sera treinado
 
+# Salvar o modelo em formato TensorFlow SavedModel
+#model.save('model')
+
+#exported_model = ModelExported(model)
